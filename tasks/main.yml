@@ -1,5 +1,8 @@
 ---
 # Perform all neccessary setup tasks
+- name: Ensure packages for deployment tasks are present on debian systems as well
+  script: basedeploy.sh
+  when: ansible_distribution == 'Debian' or ansible_distribution == 'Ubuntu'
 
 - name: Install required packages
   package:
@@ -7,23 +10,8 @@
       state: latest
   with_items: "{{ packages }}"
 
-- name: Load Kernelmodules
-  modprobe:
-      name: vboxdrv
-      state: present
+- name: configure ssh
+  debug: msg="coming soon"
 
-- name: Ensure existence of vagrant diskfile directory
-  file:
-      path: "{{ vagrant_diskdir }}"
-      state: directory
-      owner: '{{ deploying_user }}'
-      mode: 0700
-  when:
-      extra_disk
-
-- name: Generate Vagranfile from template
-  template:
-      src: vagrantfile.jinja2
-      dest: ./Vagrantfile
-      owner: '{{ deploying_user }}'
-      mode: 0700
+- name: configure ufw
+  debug: msg="coming soon"
