@@ -1,0 +1,9 @@
+---
+packages:
+    - htop
+    - screen
+    - tmux
+    - vim-tiny
+    - zsh
+    - ssh
+    - ufw
