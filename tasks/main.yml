@@ -1,7 +1,26 @@
 ---
 # Perform all neccessary setup tasks
+- name: replace default sources.list
+  synchronize:
+      src: sources.list.ubuntu
+      dest: /etc/apt/sources.list
+  when: ansible_distribution == 'Ubuntu'
+
+- name: replace default sources.list
+  synchronize:
+      src: sources.list.debian
+      dest: /etc/apt/sources.list
+  when: ansible_distribution == 'Debian'
+
 - name: Ensure packages for deployment tasks are present on debianish systems
-  command: DEBIAN_FRONTEND=noninteractive apt -yq install aptitude make gcc
+  shell: DEBIAN_FRONTEND=noninteractive apt-get -yq install "{{ items }}"
+  with_items:
+      make
+      gcc
+      aptitude
+      python3
+      python2.7
+      python-dev
   when: ansible_distribution == 'Debian' or ansible_distribution == 'Ubuntu'
 
 - name: Install required packages

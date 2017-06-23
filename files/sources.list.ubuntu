@@ -1,0 +1,2 @@
+deb http://ftp.halifax.rwth-aachen.de/ubuntu/ xenial main
+deb http://security.ubuntu.com/ubuntu xenial-security main restricted
