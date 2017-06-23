@@ -20,6 +20,12 @@
     - python2.7
   when: ansible_distribution == 'Debian' or ansible_distribution == 'Ubuntu'
 
+- name: update package cache
+  package:
+      update_cache: yes
+      upgrade: yes
+
+
 - name: Install required packages
   package:
       name: "{{ item }}"
