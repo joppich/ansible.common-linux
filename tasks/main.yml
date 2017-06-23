@@ -1,7 +1,7 @@
 ---
 # Perform all neccessary setup tasks
-- name: Ensure packages for deployment tasks are present on debian systems as well
-  script: basedeploy.sh
+- name: Ensure packages for deployment tasks are present on debianish systems
+  command: DEBIAN_FRONTEND=noninteractive apt -yq install aptitude make gcc
   when: ansible_distribution == 'Debian' or ansible_distribution == 'Ubuntu'
 
 - name: Install required packages
