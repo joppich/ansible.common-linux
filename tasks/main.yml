@@ -16,11 +16,8 @@
   shell: DEBIAN_FRONTEND=noninteractive apt-get -yq install "{{ item }}"
   with_items:
     - make
-    - gcc
-    - aptitude
     - python3
     - python2.7
-    - python-dev
   when: ansible_distribution == 'Debian' or ansible_distribution == 'Ubuntu'
 
 - name: Install required packages
