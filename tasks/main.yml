@@ -31,7 +31,7 @@
 - name: Mark this host bootstrapped
   file:
       path: /etc/ansible_deployed
-      state: present
+      state: touch
   when: system_is_bootstrapped|failed
 
 - name: Upgrade System
