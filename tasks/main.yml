@@ -22,13 +22,13 @@
   when: ansible_distribution == 'Debian' or ansible_distribution == 'Ubuntu'
 
 - name: update package cache
-  package:
+  apt:
       update_cache: yes
       upgrade: yes
 
 
 - name: Install required packages
-  package:
+  apt:
       name: "{{ item }}"
       state: latest
   with_items: "{{ packages }}"
