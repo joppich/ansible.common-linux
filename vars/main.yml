@@ -4,6 +4,24 @@ packages:
     - screen
     - tmux
     - vim-tiny
-    - zsh
     - ssh
     - ufw
+    - fail2ban
+    - logwatch
+    - unattended-upgrades
+
+sshd_config_settings:
+    - regexp: "^PermitRootLogin"
+      line: "PermitRootLogin no"
+      state: present
+    - regexp: "^#PasswordAuthentication"
+      line: "Password Authentication no"
+      state: present
+
+public_services:
+    - port: ssh
+      rule: allow
+    - port: http
+      rule: allow
+    - port: https
+      rule: allow

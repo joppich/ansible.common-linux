@@ -1,16 +1,23 @@
 ---
 # Perform all neccessary setup tasks
+- name: Check whether target host has been boostrapped
+  file: 
+      path: /etc/ansible_deployed
+      state: file
+  ignore_errors: true
+  register: system_is_bootstrapped
+
 - name: replace default sources.list
   synchronize:
       src: sources.list.ubuntu
       dest: /etc/apt/sources.list
-  when: ansible_distribution == 'Ubuntu'
+  when: ansible_distribution == 'Ubuntu' and system_is_bootstrapped|failed
 
 - name: replace default sources.list
   synchronize:
       src: sources.list.debian
       dest: /etc/apt/sources.list
-  when: ansible_distribution == 'Debian'
+  when: ansible_distribution == 'Debian' and system_is_bootstrapped|failed
 
 - name: Ensure packages for deployment tasks are present on debianish systems
   raw: apt-get update && DEBIAN_FRONTEND=noninteractive apt-get -yq install "{{ item }}"
@@ -19,22 +26,70 @@
     - python3
     - python2.7
     - aptitude
-  when: ansible_distribution == 'Debian' or ansible_distribution == 'Ubuntu'
+  when: ansible_distribution == 'Debian' or ansible_distribution == 'Ubuntu' and system_is_bootstrapped|failed
 
-- name: update package cache
+- name: Mark this host bootstrapped
+  file:
+      path: /etc/ansible_deployed
+      state: present
+  when: system_is_bootstrapped|failed
+
+- name: Upgrade System
   apt:
-      update_cache: yes
       upgrade: yes
-
+  when: system_is_bootstrapped|failed
 
 - name: Install required packages
   apt:
       name: "{{ item }}"
       state: latest
+      update_cache: yes
   with_items: "{{ packages }}"
 
-- name: configure ssh
-  debug: msg="coming soon"
+- name: Deploy periodic config for unattended upgrades
+  synchronize:
+      src: apt_10periodic
+      dest: /etc/apt/apt.conf.d/10periodic
 
-- name: configure ufw
-  debug: msg="coming soon"
+- name: Configure sshd
+  lineinfile:
+      dest: /etc/ssh/sshd_config
+      regexp: "{{ item.regexp }}"
+      line: "{{ item.line }}"
+      state: "{{ item.state }}"
+  notify: restart_sshd
+  with_items: "{{ sshd_config_settings }}"
+
+- block:
+    - debug: msg="configuring ufw"
+    - ufw:
+        state: enabled
+        logging: on
+    - ufw:
+        direction: incoming
+        policy: deny
+    - ufw:
+        direction: outgoing
+        policy: allow
+    - ufw:
+        port: "{{ item.port }}"
+        rule: "{{ item.rule }}"
+      with_items: "{{ public_services }}"
+
+- name: Setup sendmail capability
+  debconf: 
+        name: postfix
+        question: "{{ item.question }}"
+        value: "{{ item.value }}"
+        vtype: "{{ item.vtype }}"
+  with_items:
+    - { question: 'postfix/mailname', value: ansible_fqdn, vtype: 'string' }
+    - { question: 'postfix/main_mailer_type', value: 'Internet Site', vtype: 'string' }
+
+- name: Simple monitoring with logwatch
+  lineinfile: 
+        dest: /etc/cron.daily/00logwatch
+        regexp: "^/usr/sbin/logwatch"
+        line: "/usr/sbin/logwatch --output mail --mailto {{ admin_email_address }} --detail high"
+        state: present 
+        create: yes
