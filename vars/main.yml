@@ -15,7 +15,7 @@ sshd_config_settings:
       line: "PermitRootLogin no"
       state: present
     - regexp: "^#PasswordAuthentication"
-      line: "Password Authentication no"
+      line: "PasswordAuthentication no"
       state: present
 
 public_services:
